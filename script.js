@@ -1,64 +1,95 @@
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function () {
     let currentPage = 1;
+    let totalPages = 0;
     let selectedItems = [];
 
-    // Função para carregar dados da API na tabela de consulta
+    const itemsPerPage = 20;
+
     const loadTableData = async (page) => {
         try {
-            const response = await fetch(`URL_DA_API?page=${page}`);
+            const publicKey = 'SUA_PUBLIC_KEY';
+            const privateKey = 'SUA_PRIVATE_KEY';
+            const timestamp = new Date().getTime();
+            const hash = CryptoJS.MD5(`${timestamp}${privateKey}${publicKey}`).toString();
+
+            const response = await fetch(`https://gateway.marvel.com/v1/public/comics?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${(page - 1) * itemsPerPage}`);
             const data = await response.json();
 
-            const tableBody = document.getElementById('queryTable').getElementsByTagName('tbody')[0];
-            tableBody.innerHTML = '';
+            totalPages = Math.ceil(data.data.total / itemsPerPage);
 
-            data.forEach(item => {
-                let row = tableBody.insertRow();
-                let idCell = row.insertCell(0);
-                let nameCell = row.insertCell(1);
-                let actionCell = row.insertCell(2);
+            updatePageNumbers();
 
-                idCell.innerHTML = item.id;
-                nameCell.innerHTML = item.name;
-                
-                let selectButton = document.createElement('button');
-                selectButton.innerHTML = 'Selecionar';
-                selectButton.className = 'btn btn-success select-item';
-                selectButton.onclick = () => addToSelectionTable(item);
-                actionCell.appendChild(selectButton);
+            $('#queryTable tbody').empty();
+
+            data.data.results.forEach(comic => {
+                const row = $('<tr>');
+                row.append($('<td>').text(comic.id));
+                row.append($('<td>').text(comic.title));
+
+                const imageCell = $('<td>');
+                if (comic.thumbnail && comic.thumbnail.path && comic.thumbnail.extension) {
+                    const imageUrl = `${comic.thumbnail.path}/portrait_medium.${comic.thumbnail.extension}`;
+                    const image = $('<img>').attr('src', imageUrl).addClass('comic-image');
+                    imageCell.append(image);
+                }
+                row.append(imageCell);
+
+                const selectButton = $('<button>').text('Selecionar').addClass('btn btn-success select-item');
+                selectButton.on('click', () => addToSelectionTable(comic));
+                row.append($('<td>').append(selectButton));
+
+                $('#queryTable tbody').append(row);
             });
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
         }
     };
 
-    // Função para adicionar um item selecionado à tabela de seleção
-    const addToSelectionTable = (item) => {
-        if (selectedItems.some(selectedItem => selectedItem.id === item.id)) {
+    const addToSelectionTable = (comic) => {
+        if (selectedItems.some(selectedItem => selectedItem.id === comic.id)) {
             return;
         }
 
-        const selectionTableBody = document.getElementById('selectionTable').getElementsByTagName('tbody')[0];
-        let row = selectionTableBody.insertRow();
-        let idCell = row.insertCell(0);
-        let nameCell = row.insertCell(1);
+        const row = $('<tr>');
+        row.append($('<td>').text(comic.id));
+        row.append($('<td>').text(comic.title));
 
-        idCell.innerHTML = item.id;
-        nameCell.innerHTML = item.name;
+        const imageCell = $('<td>');
+        if (comic.thumbnail && comic.thumbnail.path && comic.thumbnail.extension) {
+            const imageUrl = `${comic.thumbnail.path}/portrait_medium.${comic.thumbnail.extension}`;
+            const image = $('<img>').attr('src', imageUrl).addClass('comic-image');
+            imageCell.append(image);
+        }
+        row.append(imageCell);
 
-        selectedItems.push(item);
+        $('#selectionTable tbody').append(row);
+
+        selectedItems.push(comic);
     };
 
-    document.getElementById('prevPage').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage -= 1;
-            loadTableData(currentPage);
-        }
-    });
+    const updatePageNumbers = () => {
+        $('#pageNumbers').empty();
 
-    document.getElementById('nextPage').addEventListener('click', () => {
-        currentPage += 1;
-        loadTableData(currentPage);
-    });
+        // Adiciona botões de página de 1 até totalPages, mostrando no máximo 5 páginas por vez
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                const pageButton = $('<button>').text(i).addClass('btn btn-light');
+                pageButton.on('click', () => {
+                    currentPage = i;
+                    loadTableData(currentPage);
+                });
+                $('#pageNumbers').append(pageButton);
+            } else if (
+                (currentPage <= 3 && i === currentPage + 3) ||
+                (currentPage >= totalPages - 2 && i === currentPage - 3) ||
+                (currentPage > 3 && currentPage < totalPages - 2 && i === currentPage + 3)
+            ) {
+                // Adiciona "..." se houver mais de 5 páginas
+                const ellipsis = $('<span>').text('...').addClass('ellipsis');
+                $('#pageNumbers').append(ellipsis);
+            }
+        }
+    };
 
     loadTableData(currentPage);
 });

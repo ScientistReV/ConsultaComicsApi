@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta Usuário API</title>
+    <title>Consulta Comics API</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Consulta API</h1>
+        <h1 class="mb-4">Consulta API Marvel Comics</h1>
 
         <div class="mb-5">
             <h2>Tabela de Consulta</h2>
@@ -16,27 +16,24 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>ID</th>
-                        <th>Nome</th>
+                        <th>Título</th>
+                        <th>Imagem</th>
                         <th>Ação</th>
                     </tr>
                 </thead>
                 <tbody>
                 </tbody>
             </table>
+            <div id="pageNumbers" class="btn-group mt-2"></div>
         </div>
-
-        <div class="mb-4 text-center">
-            <button id="prevPage" class="btn btn-primary">Página Anterior</button>
-            <button id="nextPage" class="btn btn-primary">Próxima Página</button>
-        </div>
-
         <div>
             <h2>Tabela de Seleção</h2>
             <table class="table table-striped" id="selectionTable">
                 <thead class="thead-dark">
                     <tr>
                         <th>ID</th>
-                        <th>Nome</th>
+                        <th>Título</th>
+                        <th>Imagem</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,6 +45,9 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>
